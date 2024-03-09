@@ -1,4 +1,5 @@
 # search.py
+from collections import defaultdict
 # ---------
 # Licensing Information:  You are free to use or extend these projects for
 # educational purposes provided that (1) you do not distribute or publish
@@ -87,16 +88,67 @@ def depthFirstSearch(problem: SearchProblem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
+    start = problem.getStartState()
+    if problem.isGoalState(start):
+        return []
+    
+    stack = util.Stack()
+    visited = set()
+    stack.push((start, []))
+    
+    while stack:
+        cur, path = stack.pop()
+        if problem.isGoalState(cur):
+            return path
+        elif cur not in visited:
+            visited.add(cur)
+            for edges in problem.getSuccessors(cur):
+                stack.push((edges[0], path + [edges[1]])) 
     util.raiseNotDefined()
 
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
+    start = problem.getStartState()
+    if problem.isGoalState(start):
+        return []
+    
+    queue = util.Queue()
+    visited = set()
+    queue.push((start, []))
+    
+    while queue:
+        cur, path = queue.pop()
+        if problem.isGoalState(cur):
+            return path
+        elif cur not in visited:
+            visited.add(cur)
+            for edges in problem.getSuccessors(cur):
+                queue.push((edges[0], path + [edges[1]])) 
     util.raiseNotDefined()
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
+    start = problem.getStartState()
+    if problem.isGoalState(start):
+        return []
+    pq = util.PriorityQueue()
+    visited = set()
+    pq.push((start, [], 0), 0)
+    dictcost = defaultdict(int)
+    dictcost[start] = 0
+    while pq:
+        cur, path, cost = pq.pop()
+        if problem.isGoalState(cur):
+            return path
+        if cur not in visited:
+            visited.add(cur)
+            
+            for edges in problem.getSuccessors(cur):
+                if edges[0] not in visited or cost + edges[2] < dictcost[cur]:
+                    dictcost[edges[0]] =  cost + edges[2]
+                    pq.push((edges[0], path + [edges[1]], dictcost[edges[0]]), dictcost[edges[0]])
     util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
@@ -109,6 +161,29 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
+    start = problem.getStartState()
+    if problem.isGoalState(start):
+        return []
+    
+    pq = util.PriorityQueue()
+    visited = set()
+    dictcost = defaultdict(int)
+    dictcost[start] = 0
+    pq.push((start, [], 0), 0 + heuristic(start, problem))
+    
+    while pq:
+        cur, path, cost = pq.pop()
+        
+        if problem.isGoalState(cur):
+            return path
+        
+        if cur not in visited:
+            visited.add(cur)
+            
+            for edges in problem.getSuccessors(cur):
+                if edges[0] not in visited or edges[2] + cost < dictcost[cur]:
+                    dictcost[edges[0]] = edges[2] + cost
+                    pq.push((edges[0], path + [edges[1]], dictcost[edges[0]]), dictcost[edges[0]] + heuristic(edges[0], problem) )
     util.raiseNotDefined()
 
 
